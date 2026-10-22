@@ -56,21 +56,33 @@
 /**
  * @brief Function for application main entry.
  */
+
+void blink_n_times(int n, int i) {
+	for(int j = 0; j<n; j+=1) {
+            bsp_board_led_on(i);
+            nrf_delay_ms(500);
+            bsp_board_led_off(i);
+            nrf_delay_ms(500);
+	}
+}
+
 int main(void)
 {
     /* Configure board. */
     bsp_board_init(BSP_INIT_LEDS);
 
+    unsigned int times_to_blink[] = {6, 5, 9, 9};
     /* Toggle LEDs. */
     while (true)
     {
         for (int i = 0; i < LEDS_NUMBER; i++)
         {
-            bsp_board_led_invert(i);
-            nrf_delay_ms(500);
+		blink_n_times(times_to_blink[i], i);
+		nrf_delay_ms(1500);
         }
     }
 }
+
 
 /**
  *@}
