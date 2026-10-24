@@ -60,9 +60,9 @@
 void blink_n_times(int n, int i) {
 	for(int j = 0; j<n; j+=1) {
             bsp_board_led_on(i);
-            nrf_delay_ms(500);
+            nrf_delay_ms(200);
             bsp_board_led_off(i);
-            nrf_delay_ms(500);
+            nrf_delay_ms(200);
 	}
 }
 
@@ -78,7 +78,7 @@ int main(void)
         for (int i = 0; i < LEDS_NUMBER; i++)
         {
 		blink_n_times(times_to_blink[i], i);
-		nrf_delay_ms(1500);
+		nrf_delay_ms(1000);
         }
     }
 }
