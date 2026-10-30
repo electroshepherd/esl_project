@@ -51,35 +51,97 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "nrf_delay.h"
-#include "boards.h"
+
+#include "pca10059.h"
 
 /**
  * @brief Function for application main entry.
  */
+const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
+const uint8_t buttons_list[BUTTONS_NUMBER] = BUTTONS_LIST;
+
+bool button_state_get(uint32_t button_id) { //stands for bsp_board_button_state_get from boards.c
+	if(button_id < BUTTONS_NUMBER) {
+		return nrf_gpio_pin_read(buttons_list[button_id])==BUTTONS_ACTIVE_STATE;
+	}
+	return 0;
+}
+
+void led_on(uint32_t led_id) { //stands for bsp_board_led_on() from boards.c
+	if(led_id<LEDS_NUMBER) {
+        	nrf_gpio_pin_write(leds_list[led_id], LEDS_ACTIVE_STATE);
+	}
+}
+
+void led_off(uint32_t led_id) { //stands for bsp_board_led_on() from boards.c
+	if(led_id<LEDS_NUMBER) {
+        	nrf_gpio_pin_write(leds_list[led_id], ~LEDS_ACTIVE_STATE);
+	}
+}
+
+void leds_off()
+{
+    uint32_t i;
+    for (i = 0; i < LEDS_NUMBER; ++i)
+    {
+       led_off(i);
+    }
+}
+
+void leds_init() { //stands for bsp_board_leds_init in boards.c
+    uint32_t i;
+    for (i = 0; i < LEDS_NUMBER; ++i)
+    {
+        nrf_gpio_cfg_output(leds_list[i]);
+    }
+    leds_off();
+}
+
+void buttons_init() { //stands for bsp_board_buttons_init in boards.c
+    uint32_t i;
+    for (i = 0; i < BUTTONS_NUMBER; ++i)
+    {
+        nrf_gpio_cfg_input(buttons_list[i], BUTTON_PULL);
+    }
+}
 
 void blink_n_times(int n, int i) {
 	for(int j = 0; j<n; j+=1) {
-            bsp_board_led_on(i);
+            led_on(i);
             nrf_delay_ms(200);
-            bsp_board_led_off(i);
+            led_off(i);
             nrf_delay_ms(200);
 	}
+}
+void blink_once(uint32_t i) {
+	led_on(i);
+	nrf_delay_ms(200);
+	led_off(i);
 }
 
 int main(void)
 {
     /* Configure board. */
-    bsp_board_init(BSP_INIT_LEDS);
+	leds_init();
+	buttons_init();
 
     unsigned int times_to_blink[] = {6, 5, 9, 9};
     /* Toggle LEDs. */
+    uint32_t i = 0; //led_id
+    uint32_t b = times_to_blink[i]; //blink counter
     while (true)
     {
-        for (int i = 0; i < LEDS_NUMBER; i++)
-        {
-		blink_n_times(times_to_blink[i], i);
-		nrf_delay_ms(1000);
-        }
+	    while(button_state_get(0)) {
+		    if(b==0) {
+			    if(i<=2) i++;
+			    else if(i==3) i = 0;
+			    else i=0;
+			    b = times_to_blink[i];
+		    }
+		    blink_once(i);
+		    nrf_delay_ms(200);
+		    b-=1;
+	    }
     }
 }
 
